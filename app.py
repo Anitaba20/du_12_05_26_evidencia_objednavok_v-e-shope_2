@@ -2,13 +2,61 @@ from flask import Flask, jsonify, request
 from database import db
 from customer import Customer
 from order import Order
+from datetime import datetime, timedelta
+from functools import wraps
+import jwt
+
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://neondb_owner:npg_I5zs0OAwrtVm@ep-old-sun-ala7ftma-pooler.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://neondb_owner...
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-# db = SQLAlchemy(app)
+
+SECRET_KEY = 'tajny_kluc'
 
 db.init_app(app)
+
+
+@app.route('/generate-token', methods=['POST'])
+def generate_token():
+
+    username = request.json.get('username')
+
+    exp = datetime.utcnow() + timedelta(hours=1)
+
+    token = jwt.encode({
+        'user': username,
+        'exp': exp
+    }, SECRET_KEY, algorithm='HS256')
+
+    return jsonify({
+        'token': token
+    })
+
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+
+        token = request.headers.get('Authorization')
+
+        if not token:
+            return jsonify({
+                'message': 'Token is missing'
+            }), 401
+
+        try:
+            token = token.split()[1]
+
+            jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+
+        except:
+            return jsonify({
+                'message': 'Token is invalid'
+            }), 401
+
+        return f(*args, **kwargs)
+
+    return decorated
 
 
 # 1 Načítaj všetkých zákazníkov (GET /customers)
@@ -73,6 +121,7 @@ def get_customer_orders(customer_id):
 # 4 Pridaj novú objednávku zákazníkovi
 # (POST /customers/<customer_id>/orders)
 @app.route('/customers/<int:customer_id>/orders', methods=['POST'])
+@token_required
 def add_order(customer_id):
 
     new_order = Order(
