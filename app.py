@@ -140,6 +140,7 @@ def add_order(customer_id):
 
 # 5 Uprav objednávku (PUT /orders/<order_id>)
 @app.route('/orders/<int:order_id>', methods=['PUT'])
+@token_required
 def update_order(order_id):
 
     order = Order.query.get(order_id)
@@ -162,6 +163,7 @@ def update_order(order_id):
 
 # 6 Zmaž objednávku (DELETE /orders/<order_id>)
 @app.route('/orders/<int:order_id>', methods=['DELETE'])
+@token_required
 def delete_order(order_id):
 
     order = Order.query.get(order_id)
