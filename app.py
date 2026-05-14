@@ -8,7 +8,7 @@ import jwt
 
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://neondb_owner...
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://neondb_owner:npg_I5zs0OAwrtVm@ep-old-sun-ala7ftma-pooler.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 SECRET_KEY = 'tajny_kluc'
@@ -21,7 +21,7 @@ def generate_token():
 
     username = request.json.get('username')
 
-    exp = datetime.utcnow() + timedelta(hours=1)
+    exp = datetime.utcnow() + timedelta(minutes=10)
 
     token = jwt.encode({
         'user': username,
