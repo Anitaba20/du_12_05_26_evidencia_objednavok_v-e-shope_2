@@ -1,3 +1,5 @@
+# tabuľky som dom postgresu poslala cez data grip
+
 from flask import Flask, jsonify, request
 from database import db
 from customer import Customer
