@@ -10,14 +10,14 @@ import jwt
 
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://neondb_owner:...
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://neondb_owner:...'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 SECRET_KEY = 'tajny_kluc'
 
 db.init_app(app)
 
-
+# token
 @app.route('/generate-token', methods=['POST'])
 def generate_token():
 
@@ -42,6 +42,7 @@ def generate_token():
     }), 401
 
 
+# decorator
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
