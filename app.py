@@ -1,4 +1,4 @@
-# tabuľky som dom postgresu poslala cez data grip
+# tabuľky som do postgresu poslala cez data grip
 
 from flask import Flask, jsonify, request
 from database import db
@@ -22,17 +22,24 @@ db.init_app(app)
 def generate_token():
 
     username = request.json.get('username')
+    password = request.json.get('password')
 
-    exp = datetime.utcnow() + timedelta(minutes=10)
+    if username == 'user' and password == 'word':
 
-    token = jwt.encode({
-        'user': username,
-        'exp': exp
-    }, SECRET_KEY, algorithm='HS256')
+        exp = datetime.utcnow() + timedelta(minutes=10)
+
+        token = jwt.encode({
+            'user': username,
+            'exp': exp
+        }, SECRET_KEY, algorithm='HS256')
+
+        return jsonify({
+            'token': token
+        })
 
     return jsonify({
-        'token': token
-    })
+        'message': 'Invalid username or password'
+    }), 401
 
 
 def token_required(f):
@@ -99,6 +106,7 @@ def get_orders():
     return jsonify(result)
 
 
+# filtrovanie
 # 3 Načítaj všetky objednávky konkrétneho zákazníka
 # (GET /customers/<customer_id>/orders)
 @app.route('/customers/<int:customer_id>/orders', methods=['GET'])
@@ -148,7 +156,6 @@ def update_order(order_id):
     order = Order.query.get(order_id)
 
     if order:
-
         order.product_name = request.json['product_name']
         order.quantity = request.json['quantity']
 
