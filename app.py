@@ -10,7 +10,7 @@ import jwt
 
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://neondb_owner:npg_I5zs0OAwrtVm@ep-old-sun-ala7ftma-pooler.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:...'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 SECRET_KEY = 'tajny_kluc'
@@ -20,7 +20,6 @@ db.init_app(app)
 # token (autentifikácia)
 @app.route('/generate-token', methods=['POST'])
 def generate_token():
-
     email = request.json.get('email')
     password = request.json.get('password')
 
