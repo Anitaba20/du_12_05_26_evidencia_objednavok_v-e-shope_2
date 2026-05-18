@@ -41,7 +41,7 @@ def generate_token():
     }), 401
 
 
-# decorator (autorizácia)
+# decorator
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
