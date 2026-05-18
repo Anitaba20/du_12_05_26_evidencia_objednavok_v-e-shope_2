@@ -1,21 +1,20 @@
-# tabuľky som do postgresu poslala cez data grip
-
 from flask import Flask, jsonify, request
 from database import db
 from customer import Customer
 from order import Order
-from datetime import datetime, timedelta
-from functools import wraps
-import jwt
-
+from datetime import timedelta
+from flask_jwt_extended import JWTManager, create_access_token, jwt_required
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://neondb_owner:npg_I5zs0OAwrtVm@ep-old-sun-ala7ftma-pooler.c-3.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-SECRET_KEY = 'tajny_kluc'
+app.config['JWT_SECRET_KEY'] = 'tajny_kluc'
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(minutes=10)
 
 db.init_app(app)
+
+jwt = JWTManager(app)
 
 # token (autentifikácia)
 @app.route('/generate-token', methods=['POST'])
@@ -25,12 +24,7 @@ def generate_token():
 
     if email == 'user@gmail.com' and password == 'word':
 
-        exp = datetime.utcnow() + timedelta(minutes=10)
-
-        token = jwt.encode({
-            'email': email,
-            'exp': exp
-        }, SECRET_KEY, algorithm='HS256')
+        token = create_access_token(identity=email)
 
         return jsonify({
             'token': token
@@ -41,34 +35,7 @@ def generate_token():
     }), 401
 
 
-# decorator
-def token_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-
-        token = request.headers.get('Authorization')
-
-        if not token:
-            return jsonify({
-                'message': 'Token is missing'
-            }), 401
-
-        try:
-            token = token.split()[1]
-
-            jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
-
-        except:
-            return jsonify({
-                'message': 'Token is invalid'
-            }), 401
-
-        return f(*args, **kwargs)
-
-    return decorated
-
-
-# 1 Načítaj všetkých zákazníkov (GET /customers)
+# 1 Načítaj všetkých zákazníkov
 @app.route('/customers', methods=['GET'])
 def get_customers():
 
@@ -85,8 +52,7 @@ def get_customers():
 
     return jsonify(result)
 
-
-# 2 Načítaj všetky objednávky (GET /orders)
+# 2 Načítaj všetky objednávky
 @app.route('/orders', methods=['GET'])
 def get_orders():
 
@@ -105,10 +71,7 @@ def get_orders():
 
     return jsonify(result)
 
-
-# filtrovanie
 # 3 Načítaj všetky objednávky konkrétneho zákazníka
-# (GET /customers/<customer_id>/orders)
 @app.route('/customers/<int:customer_id>/orders', methods=['GET'])
 def get_customer_orders(customer_id):
 
@@ -127,11 +90,9 @@ def get_customer_orders(customer_id):
 
     return jsonify(result)
 
-
 # 4 Pridaj novú objednávku zákazníkovi
-# (POST /customers/<customer_id>/orders)
 @app.route('/customers/<int:customer_id>/orders', methods=['POST'])
-@token_required
+@jwt_required()
 def add_order(customer_id):
 
     new_order = Order(
@@ -147,10 +108,9 @@ def add_order(customer_id):
         'message': 'Order added'
     }), 201
 
-
-# 5 Uprav objednávku (PUT /orders/<order_id>)
+# 5 Uprav objednávku
 @app.route('/orders/<int:order_id>', methods=['PUT'])
-@token_required
+@jwt_required()
 def update_order(order_id):
 
     order = Order.query.get(order_id)
@@ -170,9 +130,9 @@ def update_order(order_id):
     }), 404
 
 
-# 6 Zmaž objednávku (DELETE /orders/<order_id>)
+# 6 Zmaž objednávku
 @app.route('/orders/<int:order_id>', methods=['DELETE'])
-@token_required
+@jwt_required()
 def delete_order(order_id):
 
     order = Order.query.get(order_id)
