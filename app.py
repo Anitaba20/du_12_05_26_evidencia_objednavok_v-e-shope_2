@@ -10,7 +10,7 @@ import jwt
 
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = ''postgresql:...''
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:...'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 SECRET_KEY = 'tajny_kluc'
