@@ -41,7 +41,7 @@ def generate_token():
     }), 401
 
 
-# decorator
+# JWT decorator
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
